@@ -4,19 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Image Classification with TensorFlow.js and Brain.js</title>
-<style>
-  #imageElement {
-    max-width: 100%;
-    max-height: 300px;
-    margin-bottom: 20px;
-  }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <h1>Image Classification with TensorFlow.js and Brain.js</h1>
-<p>Select an image to classify:</p>
-<input type="file" id="imageFile" accept="image/*">
-<img id="imageElement" src="#" alt="Selected Image">
+<div>
+  <label for="imageFile">Select an image to classify:</label><br>
+  <input type="file" id="imageFile" accept="image/*"><br>
+  <img id="imageElement" src="#" alt="Selected Image">
+  <div id="imagePreview" class="image-preview"></div>
+</div>
 <div>
   <h3>Image Information</h3>
   <p id="imageInfo"></p>
@@ -28,102 +25,24 @@
     <option value="brain">Simple Neural Network (Brain.js)</option>
   </select>
 </div>
+<div>
+  <h3>Probability Threshold</h3>
+  <input type="range" id="probabilitySlider" min="0" max="1" step="0.01" value="0.5">
+  <span id="probabilityLabel">0.5</span>
+</div>
 <div id="tfPredictionResults">
   <h2>TensorFlow.js (MobileNet)</h2>
   <div id="tfStatus"></div>
-  <ul id="tfResults"></ul>
+  <ul id="tfResults" class="result-list"></ul>
 </div>
 <div id="brainPredictionResults">
   <h2>Brain.js (Simple Neural Network)</h2>
   <div id="brainStatus"></div>
-  <ul id="brainResults"></ul>
+  <ul id="brainResults" class="result-list"></ul>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.8.0/dist/tf-converter.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
-<script>
-  async function loadModel(modelUrl) {
-    const model = await tf.loadGraphModel(modelUrl);
-    return model;
-  }
-
-  async function classifyImage(imageElement, model, statusElement, resultsElement) {
-    const tfImg = tf.browser.fromPixels(imageElement).resizeNearestNeighbor([224, 224]).toFloat().expandDims();
-    const predictions = await model.predict(tfImg).data();
-    displayPredictions(predictions, resultsElement);
-    statusElement.textContent = '';
-  }
-
-  function displayPredictions(predictions, resultsElement) {
-    resultsElement.innerHTML = '';
-    const topClasses = getTopPredictedClasses(predictions);
-    topClasses.forEach((result) => {
-      const { className, probability } = result;
-      const listItem = document.createElement('li');
-      listItem.textContent = `${className}: ${probability.toFixed(4)}`;
-      resultsElement.appendChild(listItem);
-    });
-  }
-
-  function getTopPredictedClasses(predictions, topK = 5) {
-    const sortedPredictions = Array.from(predictions)
-      .map((prob, index) => ({ probability: prob, className: IMAGENET_CLASSES[index] }))
-      .sort((a, b) => b.probability - a.probability)
-      .slice(0, topK);
-    return sortedPredictions;
-  }
-
-  const IMAGENET_CLASSES = {
-    0: 'tench, Tinca tinca',
-    1: 'goldfish, Carassius auratus',
-    2: 'great white shark, white shark, man-eater, man-eating shark, Carcharodon carcharias',
-    // Add more ImageNet classes here...
-  };
-
-  const imageFileInput = document.getElementById('imageFile');
-  const modelSelect = document.getElementById('modelSelect');
-  const imageInfoElement = document.getElementById('imageInfo');
-  const tfStatusElement = document.getElementById('tfStatus');
-  const tfResultsElement = document.getElementById('tfResults');
-  const brainStatusElement = document.getElementById('brainStatus');
-  const brainResultsElement = document.getElementById('brainResults');
-
-  imageFileInput.addEventListener('change', async function(event) {
-    const file = event.target.files[0];
-    const imgElement = document.getElementById('imageElement');
-    imgElement.src = URL.createObjectURL(file);
-
-    imgElement.onload = async function() {
-      imageInfoElement.textContent = `Dimensions: ${imgElement.naturalWidth}x${imgElement.naturalHeight}, File Size: ${(file.size / 1024).toFixed(2)} KB`;
-      
-      const modelUrl = modelSelect.value === 'brain' ? 'brain' : modelSelect.value;
-      if (modelUrl === 'brain') {
-        tfPredictionResults.style.display = 'none';
-        brainPredictionResults.style.display = 'block';
-        brainStatusElement.textContent = 'Classifying...';
-
-        const brainNet = new brain.NeuralNetwork();
-        const brainData = [
-          { input: [0, 0], output: [1, 0, 0] },
-          { input: [0, 1], output: [0, 1, 0] },
-          { input: [1, 0], output: [0, 0, 1] },
-          { input: [1, 1], output: [1, 0, 0] }
-        ];
-        brainNet.train(brainData);
-        const brainPredictions = brainNet.run([0, 1]);
-
-        brainStatusElement.textContent = '';
-        displayPredictions(brainPredictions, brainResultsElement);
-      } else {
-        tfPredictionResults.style.display = 'block';
-        brainPredictionResults.style.display = 'none';
-        tfStatusElement.textContent = 'Classifying...';
-
-        const tfModel = await loadModel(modelUrl);
-        const tfPredictions = await classifyImage(imgElement, tfModel, tfStatusElement, tfResultsElement);
-      }
-    };
-  });
-</script>
+<script src="app.js"></script>
 </body>
 </html>
