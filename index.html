@@ -3,16 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Image Classification with TensorFlow.js and Brain.js</title>
+<title>Image Classification with TensorFlow.js, Brain.js, and Keras.js</title>
 <link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.8.0/dist/tf-converter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/keras-js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-<h1>Image Classification with TensorFlow.js and Brain.js</h1>
+<h1>Image Classification with TensorFlow.js, Brain.js, and Keras.js</h1>
 <div>
   <label for="imageFile">Select an image to classify:</label><br>
   <input type="file" id="imageFile" accept="image/*"><br>
   <img id="imageElement" src="#" alt="Selected Image">
   <div id="imagePreview" class="image-preview"></div>
+  <button id="clearButton">Clear</button>
 </div>
 <div>
   <h3>Image Information</h3>
@@ -21,8 +27,9 @@
 <div>
   <h3>Choose Model</h3>
   <select id="modelSelect">
-    <option value="https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/4/model.json">MobileNet (TensorFlow.js)</option>
+    <option value="tfjs">MobileNet (TensorFlow.js)</option>
     <option value="brain">Simple Neural Network (Brain.js)</option>
+    <option value="keras">ResNet50 (Keras.js)</option>
   </select>
 </div>
 <div>
@@ -33,16 +40,18 @@
 <div id="tfPredictionResults">
   <h2>TensorFlow.js (MobileNet)</h2>
   <div id="tfStatus"></div>
-  <ul id="tfResults" class="result-list"></ul>
+  <canvas id="tfChart"></canvas>
 </div>
 <div id="brainPredictionResults">
   <h2>Brain.js (Simple Neural Network)</h2>
   <div id="brainStatus"></div>
-  <ul id="brainResults" class="result-list"></ul>
+  <canvas id="brainChart"></canvas>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.8.0/dist/tf-converter.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
+<div id="kerasPredictionResults">
+  <h2>Keras.js (ResNet50)</h2>
+  <div id="kerasStatus"></div>
+  <canvas id="kerasChart"></canvas>
+</div>
 <script src="app.js"></script>
 </body>
 </html>
