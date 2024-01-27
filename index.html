@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Image Classification with TensorFlow.js</title>
+<title>Image Classification with TensorFlow.js and Brain.js</title>
 <style>
   #imageElement {
     max-width: 100%;
@@ -13,50 +13,44 @@
 </style>
 </head>
 <body>
-<h1>Image Classification with TensorFlow.js</h1>
+<h1>Image Classification with TensorFlow.js and Brain.js</h1>
 <p>Select an image to classify:</p>
 <input type="file" id="imageFile" accept="image/*">
 <img id="imageElement" src="#" alt="Selected Image">
-<div id="predictionResults"></div>
+<div id="tfPredictionResults">
+  <h2>TensorFlow.js (MobileNet)</h2>
+  <div id="tfStatus"></div>
+  <ul id="tfResults"></ul>
+</div>
+<div id="brainPredictionResults">
+  <h2>Brain.js (Simple Neural Network)</h2>
+  <div id="brainStatus"></div>
+  <ul id="brainResults"></ul>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.8.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.8.0/dist/tf-converter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
 <script>
   async function loadModel(modelUrl) {
     const model = await tf.loadGraphModel(modelUrl);
     return model;
   }
 
-  async function classifyImage(imageElement, model) {
+  async function classifyImage(imageElement, model, statusElement, resultsElement) {
     const tfImg = tf.browser.fromPixels(imageElement).resizeNearestNeighbor([224, 224]).toFloat().expandDims();
     const predictions = await model.predict(tfImg).data();
-    return predictions;
+    displayPredictions(predictions, resultsElement);
+    statusElement.textContent = '';
   }
 
-  const imageFileInput = document.getElementById('imageFile');
-  const predictionResults = document.getElementById('predictionResults');
-
-  imageFileInput.addEventListener('change', async function(event) {
-    const file = event.target.files[0];
-    const imgElement = document.getElementById('imageElement');
-    imgElement.src = URL.createObjectURL(file);
-
-    imgElement.onload = async function() {
-      predictionResults.innerHTML = 'Classifying...';
-      const modelUrl = 'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/4/model.json';
-      const model = await loadModel(modelUrl);
-      const predictions = await classifyImage(imgElement, model);
-      displayPredictions(predictions);
-    };
-  });
-
-  function displayPredictions(predictions) {
+  function displayPredictions(predictions, resultsElement) {
+    resultsElement.innerHTML = '';
     const topClasses = getTopPredictedClasses(predictions);
-    predictionResults.innerHTML = '';
     topClasses.forEach((result) => {
       const { className, probability } = result;
       const listItem = document.createElement('li');
       listItem.textContent = `${className}: ${probability.toFixed(4)}`;
-      predictionResults.appendChild(listItem);
+      resultsElement.appendChild(listItem);
     });
   }
 
@@ -74,6 +68,40 @@
     2: 'great white shark, white shark, man-eater, man-eating shark, Carcharodon carcharias',
     // Add more ImageNet classes here...
   };
+
+  const imageFileInput = document.getElementById('imageFile');
+  const tfStatusElement = document.getElementById('tfStatus');
+  const tfResultsElement = document.getElementById('tfResults');
+  const brainStatusElement = document.getElementById('brainStatus');
+  const brainResultsElement = document.getElementById('brainResults');
+
+  imageFileInput.addEventListener('change', async function(event) {
+    const file = event.target.files[0];
+    const imgElement = document.getElementById('imageElement');
+    imgElement.src = URL.createObjectURL(file);
+
+    imgElement.onload = async function() {
+      tfStatusElement.textContent = 'Classifying...';
+      brainStatusElement.textContent = 'Classifying...';
+      
+      const modelUrl = 'https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/4/model.json';
+      const tfModel = await loadModel(modelUrl);
+      const tfPredictions = await classifyImage(imgElement, tfModel, tfStatusElement, tfResultsElement);
+
+      const brainNet = new brain.NeuralNetwork();
+      const brainData = [
+        { input: [0, 0], output: [1, 0, 0] },
+        { input: [0, 1], output: [0, 1, 0] },
+        { input: [1, 0], output: [0, 0, 1] },
+        { input: [1, 1], output: [1, 0, 0] }
+      ];
+      brainNet.train(brainData);
+      const brainPredictions = brainNet.run([0, 1]);
+
+      brainStatusElement.textContent = '';
+      displayPredictions(brainPredictions, brainResultsElement);
+    };
+  });
 </script>
 </body>
 </html>
