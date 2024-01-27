@@ -1,0 +1,29 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+#imageElement {
+  max-width: 100%;
+  max-height: 300px;
+  margin-bottom: 20px;
+}
+
+.image-preview {
+  max-width: 200px;
+  max-height: 200px;
+  margin-bottom: 20px;
+}
+
+.result-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.result-item {
+  margin-bottom: 5px;
+}
+
+.highlight {
+  font-weight: bold;
+}
